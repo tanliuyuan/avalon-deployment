@@ -1,0 +1,17 @@
+---
+- hosts: test
+  tasks:
+  - name: install tomcat 7.0.32 with the nulrepo-public repository configured and enabled
+    yum: name=tomcat-7.0.32 state=present
+
+  - name: start tomcat
+    service: name=tomcat state=started
+
+  - name: change the tomcat connector port from 8080 to 8983
+    replace: dest=/usr/local/tomcat/conf/server.xml regexp="<Connector port=\"8080\"" replace="<Connector port=\"8983\""
+
+  - name add tomcat manager user
+    lineinfile: dest=/usr/local/tomcat/conf/tomcat-users.xml line="<tomcat-users>\n\<TAB><role\ rolename=\"manager-gui\"/>\n\<TAB><user\ username=\"admin\"\ password=\"tomcat\"\ roles=\"manager-gui\"/>\n</tomcat-users>"
+
+  - name: restart tomcat
+    service: name=tomcat state=restarted
