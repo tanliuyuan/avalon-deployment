@@ -10,8 +10,8 @@
   - name: change the tomcat connector port from 8080 to 8983
     replace: dest=/usr/local/tomcat/conf/server.xml regexp="<Connector port=\"8080\"" replace="<Connector port=\"8983\""
 
-  #- name add tomcat manager user
-   # lineinfile: dest=/usr/local/tomcat/confi/tomcat-users.xml line="fluffy cat"
+  - name: add tomcat manager user
+    lineinfile: dest=/usr/local/tomcat/conf/tomcat-users.xml line="<tomcat-users>\n  <role rolename=\"manager-gui\"/>\n  <user username=\"admin\" password=\"tomcat\" roles=\"manager-gui\"/>\n</tomcat-users>"
 
   - name: restart tomcat
     service: name=tomcat state=restarted
