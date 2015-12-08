@@ -1,0 +1,42 @@
+---
+- hosts: test
+  remote_user: root
+  tasks:
+  - name: install EPEL
+    command: rpm -ivh --replacepkgs http://linux.mirrors.es.net/fedora-epel/6/i386/epel-release-6-8.noarch.rpm
+
+  - name: make sure the host machine has a valid hostname
+    lineinfile: dest=/etc/hosts line="# hostname\\navalon.dev\\n"
+    
+  - name: set avalon.dev as the machine's domain name
+    replace: dest=/etc/hosts regexp="localhost4.localdomain4$" replace="localhost4.localdomain4 avalon.dev"
+
+  - name: copy iptables config script to remote host
+    copy: src=~/AnsibleTest/avalon-iptables-config.sh dest=/etc/sysconfig/ owner=root mode=0744
+
+  - name: run the iptables config script
+    command: /etc/sysconfig/avalon-iptables-config.sh
+
+  - name: disable SELinux
+    replace: dest=/etc/selinux/config regexp="^SELINUX=.+" replace="SELINUX=permissive"
+
+  - name: create the NUL repository config file
+    copy: src=~/AnsibleTest/nul-public.repo dest=/etc/yum.repos.d/nul-public.repo mode=0644
+
+  - name: install and place the NUL GPG key in the proper location
+    command: curl http://yumrepo-public.library.northwestern.edu/RPM-GPG-KEY-nul -o /etc/pki/rpm-gpg/RPM-GPG-KEY-nul
+
+  - name: install development libraries for building Ruby
+    yum: name="@Development-Tools" state=present
+
+  - name: install development packages for building Ruby
+    yum: name={{ item }} state=present
+    with_items:
+      - readline-devel
+      - zlib-devel
+      - libyaml-devel
+      - libffi-devel
+      - openssl-devel
+      - libxml2-devel
+      - libxslt-devel
+      - cmake
