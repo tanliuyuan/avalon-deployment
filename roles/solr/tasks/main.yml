@@ -1,0 +1,13 @@
+---
+- hosts: test
+  tasks:
+  - name: download solr-4.2.0 tarball
+    get_url: url=http://archive.apache.org/dist/lucene/solr/4.2.0/solr-4.2.0.tgz dest={{ install_path }}/solr-4.2.0.tgz force=no
+
+  - name: untar the solr-4.2.0 tarball
+    unarchive: src={{ install_path }}/solr-4.2.0.tgz dest={{ install_path }}/ copy=no
+
+  - name: copy solr-4.2.0.war to tomcat directory
+    command: "cp {{ install_path }}/solr-4.2.0/dist/solr-4.2.0.war /usr/local/tomcat/webapps/solr.war"
+
+  - name: copy 

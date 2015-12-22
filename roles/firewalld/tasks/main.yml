@@ -1,0 +1,14 @@
+---
+- hosts: test
+  remote_user: root
+  tasks:
+  - name: add ports to firewalld
+    firewalld: port={{ item }}/tcp permanent=true state=enabled
+    with_items:
+      - 22
+      - 80
+      - 1935
+      - 5080
+      - 8983
+      - 8080
+
