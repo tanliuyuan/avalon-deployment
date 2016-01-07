@@ -2,13 +2,32 @@
 - hosts: test
   remote_user: root
   tasks:
-  - name: add ports to firewalld
-    firewalld: port={{ item }}/tcp permanent=true state=enabled
+  - name: allow connections with RELATED or ESTABLISHED states
+    command: firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -m --state RELATED,ESTABLISHED -j ACCEPT
+
+  - name: check if system blocks icmp
+    command: firewall-cmd --query-icmp-block=echo-reply
+    ignore_errors: yes
+    register: icmp_block_stat
+
+  - name: allow icmp packets, remove any blocks
+    command: firewall-cmd --remove-icmp-block
+    when: icmp_block_stat == "yes"
+
+  - name: allow all local connections
+    command: firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -i lo -j ACCEPT
+  - name: open ports for external connections
+    firewalld: port={{ item }}/tcp permanent=true state=enabled immediate=true
     with_items:
       - 22
       - 80
       - 1935
-      - 5080
-      - 8983
       - 8080
+  - name: reject any other external connections
+    command: firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -j REJECT --reject-with icmp-host-prohibited
 
+  - name: reject connection forwarding
+    command: firewall-cmd --permanent --direct --add-rule ipv4 filter FORWARD 0 -j REJECT --reject-with icmp-host-prohibited
+
+  - name: reload firewalld
+    command: firewall-cmd --reload
